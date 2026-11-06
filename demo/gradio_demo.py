@@ -39,15 +39,18 @@ try:
     from raon import RaonPipeline
     from raon.models.raon import RaonConfig, RaonModel
 except ImportError:
-    # raon package not installed — load from HuggingFace Hub
+    # raon package not installed — load the model code (not the weights) from HuggingFace Hub
     import importlib
 
-    _model = AutoModel.from_pretrained("KRAFTON/Raon-Speech-9B", trust_remote_code=True)
-    _hub = importlib.import_module(type(_model).__module__)
+    from transformers.dynamic_module_utils import get_class_from_dynamic_module
+
+    _hub = importlib.import_module(
+        get_class_from_dynamic_module("modeling_raon.RaonModel", "KRAFTON/Raon-Speech-9B").__module__
+    )
     RaonPipeline = _hub.RaonPipeline
     RaonConfig = _hub.RaonConfig
     RaonModel = _hub.RaonModel
-    del _model, _hub
+    del _hub
 
 # ---------------------------------------------------------------------------
 # Example data helpers
